@@ -5,7 +5,7 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from dotenv import load_dotenv
-from zhipuai import ZhipuAI
+from openai import OpenAI
 
 # 加载环境变量
 load_dotenv()
@@ -56,11 +56,11 @@ class AIService:
 
     def __init__(self):
         """初始化AI服务，从环境变量读取配置"""
-        self.api_key = os.getenv("ZHIPU_API_KEY", "")
-        self.model_vision = os.getenv("ZHIPU_MODEL_VISION", "glm-4.6v-flash")
+        self.api_key = os.getenv("DEEPSEEK_API_KEY", "")
+        self.model_vision = os.getenv("DEEPSEEK_MODEL_VISION", "deepseek-flash")
         # 视觉备用模型：主模型限流/繁忙（429、1305）时自动切换
-        self.model_vision_fallback = os.getenv("ZHIPU_MODEL_VISION_FALLBACK", "glm-4v-flash")
-        self.model_text = os.getenv("ZHIPU_MODEL_TEXT", "glm-4.7-flash")
+        self.model_vision_fallback = os.getenv("DEEPSEEK_MODEL_VISION_FALLBACK", "")
+        self.model_text = os.getenv("DEEPSEEK_MODEL_TEXT", "deepseek-flash")
 
         try:
             self.max_retries = max(0, int(os.getenv("AI_CALL_MAX_RETRIES", "2").strip()))
@@ -73,9 +73,9 @@ class AIService:
             self.cell_workers = 3
 
         if not self.api_key:
-            raise ValueError("未找到ZHIPU_API_KEY环境变量，请在.env文件中配置")
+            raise ValueError("未找到DEEPSEEK_API_KEY环境变量，请在.env文件中配置")
 
-        self.client = ZhipuAI(api_key=self.api_key)
+        self.client = OpenAI(api_key=self.api_key, base_url="https://api.deepseek.com")
 
     # ---------------- 基础调用 ----------------
     def _chat(self, model, messages, fallback_model=None):
