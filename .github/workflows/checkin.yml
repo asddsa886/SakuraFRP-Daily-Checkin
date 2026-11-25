@@ -66,6 +66,7 @@ jobs:
           EOF
 
       - name: Wait for Random Check-in Time
+        if: github.event_name == 'schedule'
         shell: bash
         run: |
           delay=$((RANDOM % 18001))
