@@ -2,9 +2,8 @@ name: SakuraFRP Daily Check-in
 
 on:
   schedule:
-    # 12:07 Asia/Shanghai == 04:07 UTC
-    # 避开整点可显著降低 GitHub schedule 延迟/丢触发概率
-    - cron: '7 4 * * *'
+    # 每天北京时间 08:00 启动，随后随机等待 0-5 小时
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -14,7 +13,7 @@ concurrency:
 jobs:
   checkin:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 360
     env:
       TZ: Asia/Shanghai
 
@@ -51,11 +50,11 @@ jobs:
           HTTP_PROXY=${{ secrets.HTTP_PROXY }}
           USE_STATE_CACHE=false
           EMAIL_NOTIFY_ENABLED=true
-          EMAIL_NOTIFY_POLICY=${{ vars.EMAIL_NOTIFY_POLICY || 'failure_only' }}
+          EMAIL_NOTIFY_POLICY=all
           EMAIL_SMTP_HOST=smtp.qq.com
           EMAIL_SMTP_USER=${{ secrets.EMAIL_SMTP_USER }}
           EMAIL_SMTP_PASSWORD=${{ secrets.EMAIL_SMTP_PASSWORD }}
-          EMAIL_TO=${{ secrets.EMAIL_TO }}
+          EMAIL_TO=2479006945@qq.com
           FAIL_ALERT_ENABLED=false
           FAIL_ALERT_THRESHOLD=2
           CAPTCHA_EXTRA_ROUND_ENABLED=true
@@ -66,6 +65,13 @@ jobs:
           CHECKIN_RETRY_INTERVAL_SECONDS=30
           EOF
 
+      - name: Wait for Random Check-in Time
+        shell: bash
+        run: |
+          delay=$((RANDOM % 18001))
+          echo "[INFO] 随机等待 ${delay} 秒后开始签到"
+          echo "[INFO] 预计在北京时间 $(date -d "+${delay} seconds" '+%Y-%m-%d %H:%M:%S') 开始"
+          sleep "$delay"
       - name: Run Check-in With Retries
         shell: bash
         run: |
